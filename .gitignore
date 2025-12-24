@@ -5,7 +5,7 @@
 .query/
 cmake-build-debug/
 cmake-build-release/
-/CMakeFiles
+/cmake-build-debug/CMakeFiles
 
 # Compilation files
 *.exe
