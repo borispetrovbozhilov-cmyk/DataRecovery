@@ -1,6 +1,11 @@
 #include <iostream>
+#include "FileHandling.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+
+    //testing
+    int i = getTextLengthFromFile("testInput.txt");
+
+    std::cout << i << std::endl;
+
 }
