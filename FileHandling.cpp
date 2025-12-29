@@ -16,13 +16,14 @@
 
 #include <fstream>
 #include "FileHandling.h"
+#include "StringUtils.h"
 
-unsigned int getTextLengthFromFile(const char* fileName) {
+unsigned int getTextLengthFromFile(const char* filePath) {
 
     // validation
-    if (fileName == nullptr) return 0;
+    if (filePath == nullptr) return 0;
 
-    std::ifstream srcFile(fileName);
+    std::ifstream srcFile(filePath);
 
     // validation
     if (!srcFile.is_open()) return 0;
@@ -38,6 +39,39 @@ unsigned int getTextLengthFromFile(const char* fileName) {
     srcFile.close();
 
     return length;
+}
+
+bool configureCorrectFilePath(char* filePath) {
+
+    if (filePath == nullptr) return false;
+    if (filePath[0] == '\0') return false;
+
+    replaceEveryOccurrenceOfCharInString(filePath, '\\', '/');
+
+    return true;
+}
+
+bool extractTextFromFile(const char* filePath, char* text, unsigned int textLength) {
+
+    if (textLength <= 0) return false;
+    if (text == nullptr) return false;
+
+    std::ifstream inputFile(filePath);
+    if (!inputFile.is_open()) return false;
+
+    int currentIndex = 0;
+    char currentCharacter = 0;
+
+    while (inputFile.get(currentCharacter)) {
+        text[currentIndex] = currentCharacter;
+        currentIndex++;
+    }
+
+    text[currentIndex] = '\0';
+
+    inputFile.close();
+
+    return true;
 }
 
 

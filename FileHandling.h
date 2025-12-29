@@ -19,8 +19,8 @@
 
 // Function declarations
 
-unsigned int getTextLengthFromFile(const char* fileName);
-
-
+unsigned int getTextLengthFromFile(const char* filePath);
+bool configureCorrectFilePath(char* filePath);
+bool extractTextFromFile(const char* filePath, char* text, unsigned int textLength);
 
 #endif //DATARECOVERY_FILEHANDLING_H
