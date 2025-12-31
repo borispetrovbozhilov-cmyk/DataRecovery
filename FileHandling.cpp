@@ -51,9 +51,9 @@ bool configureCorrectFilePath(char* filePath) {
     return true;
 }
 
-bool extractTextFromFile(const char* filePath, char* text, unsigned int textLength) {
+// TODO no way to control whether the text length doesn't exceed the array's size
+bool extractTextFromFile(const char* filePath, char* text) {
 
-    if (textLength <= 0) return false;
     if (text == nullptr) return false;
 
     std::ifstream inputFile(filePath);
@@ -63,6 +63,7 @@ bool extractTextFromFile(const char* filePath, char* text, unsigned int textLeng
     char currentCharacter = 0;
 
     while (inputFile.get(currentCharacter)) {
+
         text[currentIndex] = currentCharacter;
         currentIndex++;
     }

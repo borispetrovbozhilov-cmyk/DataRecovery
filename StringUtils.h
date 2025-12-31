@@ -17,8 +17,8 @@
 #ifndef DATARECOVERY_STRINGUTILS_H
 #define DATARECOVERY_STRINGUTILS_H
 
-unsigned int strlen(const char* src);
+unsigned int getCharacterCount(const char* src);
 bool replaceEveryOccurrenceOfCharInString(char* src, char target, char replacement);
-bool copyStringExactlyIntoAnotherString(const char* src, char* dest);
+bool fillCharArrayWithDefaultValues(char* array, unsigned int size, char defaultValue);
 
 #endif //DATARECOVERY_STRINGUTILS_H

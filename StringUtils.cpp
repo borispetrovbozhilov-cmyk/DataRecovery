@@ -43,3 +43,16 @@ bool replaceEveryOccurrenceOfCharInString(char* src, char target, char replaceme
 
     return true;
 }
+
+bool fillCharArrayWithDefaultValues(char* array, unsigned int size, char defaultValue) {
+
+    if (array == nullptr) return false;
+    if (size == 0) return false;
+
+    for (int i = 0; i < size; i++) {
+
+        array[i] = defaultValue;
+    }
+
+    return true;
+}

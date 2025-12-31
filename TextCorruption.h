@@ -18,13 +18,19 @@
 
 unsigned int getCountOfCorruptCharacters(double corruptionRate, unsigned int textLength);
 
-// function that returns a corrupted version of a given character
-char corruptChar(char initial);
+bool isLetter(char target);
 
-// function that generates random indexes and fills up the array without repetitions
-bool getCorruptedIndexes(char* corruptIndexes, unsigned int size);
+// function that returns a corrupted version of a given character
+char corruptCharLetter(char initial);
+
+// function that generates based on random indexes chooses which characters to be corrupted and saves them in an array
+bool generateCorruptedCharacters(char* corruptChars, unsigned int countOfCorrupted, const char* text, unsigned int textLength);
 
 // function that goes through the text and corrupts the characters based on predetermined indexes + colouring
-bool corruptText(char* text, char* corruptIndexes);
+bool corruptText(char* text, char* corruptChars, unsigned int textLength);
+
+bool checkIfNumberIsInArray(const unsigned int* array, unsigned int size, unsigned int target);
+
+bool printCorruptedText(char* text, char* corruptChars);
 
 #endif //DATARECOVERY_TEXTCORRUPTION_H

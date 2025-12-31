@@ -21,6 +21,6 @@
 
 unsigned int getTextLengthFromFile(const char* filePath);
 bool configureCorrectFilePath(char* filePath);
-bool extractTextFromFile(const char* filePath, char* text, unsigned int textLength);
+bool extractTextFromFile(const char* filePath, char* text);
 
 #endif //DATARECOVERY_FILEHANDLING_H
