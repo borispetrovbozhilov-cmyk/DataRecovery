@@ -10,4 +10,6 @@ add_executable(DataRecovery main.cpp
         StringUtils.h
         TextCorruption.cpp
         TextCorruption.h
+        GameLogic.cpp
+        GameLogic.h
 )

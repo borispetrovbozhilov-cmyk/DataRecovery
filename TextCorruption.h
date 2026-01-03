@@ -31,6 +31,10 @@ bool corruptText(char* text, char* corruptChars, unsigned int textLength);
 
 bool checkIfNumberIsInArray(const unsigned int* array, unsigned int size, unsigned int target);
 
-bool printCorruptedText(char* text, char* corruptChars);
+unsigned int getWordCountOfText(const char* text);
+
+unsigned int getCountOfLettersInText(const char* text);
+
+bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, unsigned int textLength, double corruptionRate);
 
 #endif //DATARECOVERY_TEXTCORRUPTION_H

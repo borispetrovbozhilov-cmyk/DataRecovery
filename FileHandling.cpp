@@ -16,6 +16,9 @@
 
 #include <fstream>
 #include "FileHandling.h"
+
+#include <iostream>
+
 #include "StringUtils.h"
 
 unsigned int getTextLengthFromFile(const char* filePath) {

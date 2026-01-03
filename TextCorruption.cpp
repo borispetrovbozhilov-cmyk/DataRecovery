@@ -83,6 +83,58 @@ bool checkIfNumberIsInArray(const unsigned int* array, unsigned int size, unsign
     return false;
 }
 
+unsigned int getWordCountOfText(const char* text) {
+
+    if (text == nullptr) return 0;
+    if (text[0] == '\0') return 0;
+
+    int currentIndex = 0;
+    int wordCount = 0;
+
+    while (true) {
+
+        if (isLetter(text[currentIndex])) {
+
+            wordCount++;
+
+            while (isLetter(text[currentIndex++]) && text[currentIndex] != '\0');
+            currentIndex--;
+        }
+
+        currentIndex++;
+        if (text[currentIndex] == '\0') break;
+    }
+
+    return wordCount;
+}
+
+unsigned int getCountOfLettersInText(const char* text) {
+
+    if (text == nullptr) return 0;
+    if (text[0] == '\0') return 0;
+
+    unsigned int currentIndex = 0;
+    unsigned int letterCount = 0;
+
+    while (text[currentIndex++] != '\0') {
+
+        if (isLetter(text[currentIndex])) letterCount++;
+    }
+
+    return letterCount;
+}
+
+bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, unsigned int textLength, double corruptionRate) {
+
+    if (text == nullptr) return false;
+    if (textLength <= 0) return 0;
+
+    unsigned int corruptedCharsCount = getCountOfCorruptCharacters(corruptionRate, textLength);
+    unsigned int totalLettersCount = getCountOfLettersInText(text);
+
+    return totalLettersCount > corruptedCharsCount;
+}
+
 bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
 
     if (text == nullptr) return false;
@@ -93,28 +145,6 @@ bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
 
         if (corruptChars[i] != 0) text[i] = corruptCharLetter(text[i]);
     }
-
-    return true;
-}
-
-bool printCorruptedText(char* text, char* corruptChars) {
-
-    if (text == nullptr) return false;
-    if (corruptChars == nullptr) return false;
-
-    for (int i = 0; text[i] != '\0'; i++) {
-
-        if (corruptChars[i] == '\0') {
-
-            std::cout << text[i];
-            continue;
-        }
-
-        if (text[i] == corruptChars[i]) std::cout << "\033[32m" << text[i] << "\033[0m";
-        if (text[i] != corruptChars[i]) std::cout << "\033[31m" << text[i] << "\033[0m";
-    }
-
-    std::cout << std::endl;
 
     return true;
 }
