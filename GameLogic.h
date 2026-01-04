@@ -27,5 +27,10 @@ bool getLengthOfWordStartingOnGivenIndex(const char* text, const char* corruptCh
 bool printWordStartingOnGivenIndex(const char* text, const char* corruptChars, unsigned int wordIndex, unsigned int wordLength);
 bool promptPrintSelectedWord(const char* text, const char* corruptChars, unsigned int wordIndex, unsigned int wordLength);
 bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, unsigned int* &charPosition);
+bool promptPrintCharVariationsToChooseFrom(char* charVariations);
+bool promptAskUserToPickCharVariation(unsigned short* charVariation);
+bool checkIfUserChoseTheCorrectCharVariation(const char* corruptedChars, unsigned int chosenCharIndex, char chosenChar, bool &isCorrect);
+
+bool play(char* text, char* corruptChars, unsigned int corruptedCharsCount, unsigned int wordCount, unsigned int &userMistakes);
 
 #endif //DATARECOVERY_GAMELOGIC_H

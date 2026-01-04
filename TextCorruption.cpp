@@ -116,9 +116,10 @@ unsigned int getCountOfLettersInText(const char* text) {
     unsigned int currentIndex = 0;
     unsigned int letterCount = 0;
 
-    while (text[currentIndex++] != '\0') {
+    while (text[currentIndex] != '\0') {
 
         if (isLetter(text[currentIndex])) letterCount++;
+        currentIndex++;
     }
 
     return letterCount;
@@ -127,12 +128,12 @@ unsigned int getCountOfLettersInText(const char* text) {
 bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, unsigned int textLength, double corruptionRate) {
 
     if (text == nullptr) return false;
-    if (textLength <= 0) return 0;
+    if (textLength <= 0) return false;
 
     unsigned int corruptedCharsCount = getCountOfCorruptCharacters(corruptionRate, textLength);
     unsigned int totalLettersCount = getCountOfLettersInText(text);
 
-    return totalLettersCount > corruptedCharsCount;
+    return totalLettersCount >= corruptedCharsCount;
 }
 
 bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
@@ -144,6 +145,26 @@ bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
     for (int i = 0; i < textLength; i++) {
 
         if (corruptChars[i] != 0) text[i] = corruptCharLetter(text[i]);
+    }
+
+    return true;
+}
+
+bool generateCharVariationsFromCorruptedChar(char* charVariations, char corruptedChar) {
+
+    if (charVariations == nullptr) return false;
+
+    unsigned short countOfCharVariations = 6;
+
+    for (int i = 0; i < countOfCharVariations; i++) {
+
+        // generating mask for the bit on i-th position
+        int toggleBitMask = 1 << i;
+
+        // flipping the bit on i-th position
+        char charVariation = corruptedChar ^ toggleBitMask;
+
+        charVariations[i] = charVariation;
     }
 
     return true;

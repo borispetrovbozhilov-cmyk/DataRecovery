@@ -191,10 +191,10 @@ bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, un
     std::cout << "Enter the number of the character in this word you wish to inspect(0 to cancel): ";
     std::cin >> *charPosition;
 
-    //TODO decide if this is going to return true or false
-    if (*charPosition == 0) return false;
-
     while (true) {
+
+        //TODO decide if this is going to return true or false
+        if (*charPosition == 0) return false;
 
         bool anErrorHasOccurred = std::cin.fail();
 
@@ -212,4 +212,139 @@ bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, un
     }
 
     return true;
+}
+
+bool promptPrintCharVariationsToChooseFrom(char* charVariations) {
+
+    if (charVariations == nullptr) return false;
+
+    unsigned short countOfCharVariations = 6;
+
+    std::cout << "Choose what to change the selected character to: " << std::endl;
+
+    std::cout << "0) Cancel" << std::endl;
+
+    for (int i = 1; i <= countOfCharVariations; i++) {
+
+        std::cout << i << ") " << charVariations[i] << std::endl;
+    }
+
+    return true;
+}
+
+bool promptAskUserToPickCharVariation(unsigned short* chosenCharVariationIndex) {
+
+    unsigned short countOfCharVariations = 6;
+
+    std::cout << "Your choice: ";
+    std::cin >> *chosenCharVariationIndex;
+
+    while (true) {
+
+        // TODO decide if this is going to return true or false
+        if (*chosenCharVariationIndex == 0) return false;
+
+        // flag if an error has occurred in the stream(e.g. user entered a character instead of a digit)
+        bool anErrorHasOccurred = std::cin.fail();
+
+        // if the input was invalid the user would have to give new input
+        if (*chosenCharVariationIndex > countOfCharVariations || anErrorHasOccurred) {
+
+            // fixing the stream and clearing the input characters if there were any
+            std::cin.clear();
+            std::cin.ignore(AMOUNT_OF_CHARACTERS_TO_SKIP, '\n');
+
+            // prompting user for new input
+            std::cout << "Please pick a valid option between 1 and " << countOfCharVariations << ", or 0 to cancel: ";
+            std::cin >> *chosenCharVariationIndex;
+
+            // the loop continues until the user enters valid input
+            continue;
+        }
+
+        // if the input was valid we exit the loop
+        break;
+    }
+
+    return true;
+}
+
+bool checkIfUserChoseTheCorrectCharVariation(const char* corruptedChars, unsigned int chosenCharIndex, char chosenChar, bool &isCorrect) {
+
+    if (corruptedChars == nullptr) return false;
+    if (corruptedChars[chosenCharIndex] == '\0') return false;
+
+    if (corruptedChars[chosenCharIndex] == chosenChar) isCorrect = true;
+    else isCorrect = false;
+
+    return true;
+}
+
+bool play(char* text, char* corruptChars, unsigned int corruptedCharsCount, unsigned int wordCount, unsigned int &userMistakes) {
+
+    if (text == nullptr) return false;
+    if (text[0] == '\0') return false;
+    if (corruptChars == nullptr) return false;
+
+    unsigned int* wordPosition = new unsigned int;
+    unsigned int* charPosition = new unsigned int;
+    unsigned short* chosenCharVariationIndex = new unsigned short;
+
+    const unsigned short numberOfCharVariations = 6;
+
+    unsigned int correctlyGuessedChars = 0;
+
+    while (correctlyGuessedChars <= corruptedCharsCount) {
+
+        printCorruptedText(text, corruptChars);
+        //TESTING_printStringFromSize(corruptChars, textLength);
+
+        //TODO make variables const where possible
+        //TODO build logic if user chooses 0
+
+        promptAskUserToChooseWord(wordPosition, wordCount);
+
+        unsigned int wordIndex;
+        getIndexOfWordOnGivenPosition(text, corruptChars, *wordPosition, wordIndex);
+
+        unsigned int wordLength;
+        getLengthOfWordStartingOnGivenIndex(text, corruptChars, wordIndex, wordLength);
+
+        promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
+
+        //TODO validate that user has picked a corrupted character
+
+        promptAskForCharacterPosition(text, wordLength, charPosition);
+
+        const unsigned int chosenCharIndex = wordIndex + *charPosition - 1;
+        char chosenChar = text[chosenCharIndex];
+
+        char charVariations[numberOfCharVariations];
+
+        generateCharVariationsFromCorruptedChar(charVariations, chosenChar);
+
+        promptPrintCharVariationsToChooseFrom(charVariations);
+
+        promptAskUserToPickCharVariation(chosenCharVariationIndex);
+
+        const char chosenCharVariation = charVariations[*chosenCharVariationIndex];
+
+        bool userHasChosenCorrectVariation = false;
+        checkIfUserChoseTheCorrectCharVariation(corruptChars, chosenCharIndex, chosenCharVariation, userHasChosenCorrectVariation);
+
+        if (userHasChosenCorrectVariation) {
+
+            text[chosenCharIndex] = corruptChars[chosenCharIndex];
+            correctlyGuessedChars++;
+        }
+        else userMistakes++;
+
+        printCorruptedText(text, corruptChars);
+
+        //TESTING_printStringFromSize(corruptChars, textLength);
+    }
+
+    delete wordPosition;
+    delete charPosition;
+    delete chosenCharVariationIndex;
 }

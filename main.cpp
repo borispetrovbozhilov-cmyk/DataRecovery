@@ -23,7 +23,7 @@ int main() {
 
     //TODO input the file name and corruption rate
     char filePath[] = "temp.txt";
-    double corruptionRate = 0.5;
+    double corruptionRate = 0.8;
 
     //TODO textLength is going to be a dynamic variable, since we will learn the path runtime
     unsigned int textLength = getTextLengthFromFile(filePath);
@@ -51,36 +51,21 @@ int main() {
 
     corruptText(text, corruptChars, textLength);
 
-    // testing
-    printCorruptedText(text, corruptChars);
-    TESTING_printStringFromSize(corruptChars, textLength);
-
-    unsigned int* wordPosition = new unsigned int;
-
-    promptAskUserToChooseWord(wordPosition, wordCount);
-
-    unsigned int wordIndex;
-    getIndexOfWordOnGivenPosition(text, corruptChars, *wordPosition, wordIndex);
-
-    unsigned int wordLength;
-    getLengthOfWordStartingOnGivenIndex(text, corruptChars, wordIndex, wordLength);
-
-    promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
-
-    unsigned int* charPosition = new unsigned int;
-    promptAskForCharacterPosition(text, wordLength, charPosition);
-
+    unsigned int userMistakes = 0;
 
     // testing
 
+    //TODO optimize function
+    //TODO once t is corrupted to u it cannot be fixed back to t
+    play(text, corruptChars, countOfCorrupted, wordCount, userMistakes);
 
+    // testing
 
 
     // freeing memory in order of allocating it
     delete[] text;
     delete[] corruptChars;
-    delete wordPosition;
-    delete charPosition;
+
 }
 
 void TESTING_printStringFromSize(char* array, unsigned int size) {

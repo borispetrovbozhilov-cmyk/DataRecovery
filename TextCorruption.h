@@ -37,4 +37,6 @@ unsigned int getCountOfLettersInText(const char* text);
 
 bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, unsigned int textLength, double corruptionRate);
 
+bool generateCharVariationsFromCorruptedChar(char* charVariations, char corruptedChar);
+
 #endif //DATARECOVERY_TEXTCORRUPTION_H
