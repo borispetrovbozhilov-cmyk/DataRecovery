@@ -15,11 +15,11 @@ void TESTING_printStringFromSize(char* array, unsigned int size);
 int main() {
     std::srand(std::time(0));
 
-    // HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    // DWORD dwMode = 0;
-    // GetConsoleMode(hOut, &dwMode);
-    // dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    // SetConsoleMode(hOut, dwMode);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
 
     //TODO input the file name and corruption rate
     char filePath[] = "temp.txt";
@@ -34,18 +34,12 @@ int main() {
 
     extractTextFromFile(filePath, text);
 
-    int wordCount = getWordCountOfText(text);
+    const unsigned int wordCount = getWordCountOfText(text);
     std::cout << "Word count: " << wordCount << std::endl;
 
     fillCharArrayWithDefaultValues(corruptChars, textLength, 0);
 
-    unsigned int countOfCorrupted = (textLength * corruptionRate);
-
-    if (!checkIfThereAreEnoughLettersToCorruptInText(text, textLength, corruptionRate)) {
-
-        std::cout << "Error! There aren't enough compatible characters in the text to be corrupted.";
-        return -1;
-    }
+    const unsigned int countOfCorrupted = getCountOfCorruptCharacters(text, corruptionRate);
 
     generateCorruptedCharacters(corruptChars, countOfCorrupted, text, textLength);
 
@@ -56,7 +50,6 @@ int main() {
     // testing
 
     //TODO optimize function
-    //TODO once t is corrupted to u it cannot be fixed back to t
     play(text, corruptChars, countOfCorrupted, wordCount, userMistakes);
 
     // testing

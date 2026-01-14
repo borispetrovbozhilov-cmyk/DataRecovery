@@ -39,7 +39,7 @@ bool printCorruptedText(const char* text, const char* corruptChars) {
     return true;
 }
 
-void promptAskUserToChooseWord(unsigned int* &wordPosition, unsigned int wordCount) {
+void promptAskUserToChooseWord(unsigned int* const &wordPosition, unsigned int wordCount) {
 
     std::cout << "Enter the number of the word you wish to inspect: ";
 
@@ -183,7 +183,7 @@ bool promptPrintSelectedWord(const char* text, const char* corruptChars, unsigne
     return true;
 }
 
-bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, unsigned int* &charPosition) {
+bool promptAskForCharacterPosition(const char* text, const char* corruptChars, unsigned int wordLength, unsigned int wordIndex, unsigned int* const &charPosition) {
 
     if (text == nullptr) return false;
     if (text[0] == '\0') return false;
@@ -198,12 +198,19 @@ bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, un
 
         bool anErrorHasOccurred = std::cin.fail();
 
-        if (*charPosition < 0 || *charPosition > wordLength || anErrorHasOccurred) {
+        unsigned int indexOfChosenChar = wordIndex + *charPosition - 1;
+        bool hasChosenUncorruptedCharacter = (corruptChars[indexOfChosenChar] == 0 ||
+            corruptChars[indexOfChosenChar] == text[indexOfChosenChar]);
+
+        std::cout << *charPosition << std::endl;
+        std::cout << text[indexOfChosenChar] << " : " << corruptChars[indexOfChosenChar] << std::endl;
+
+        if (*charPosition <= 0 || *charPosition > wordLength || anErrorHasOccurred || hasChosenUncorruptedCharacter) {
 
             std::cin.clear();
             std::cin.ignore(AMOUNT_OF_CHARACTERS_TO_SKIP, '\n');
 
-            std::cout << "Please enter a valid position between 1 and " << wordLength << ", or 0 to cancel: ";
+            std::cout << "Please enter a valid position of a corrupted character between 1 and " << wordLength << ", or 0 to cancel: ";
             std::cin >> *charPosition;
             continue;
         }
@@ -214,7 +221,7 @@ bool promptAskForCharacterPosition(const char* text, unsigned int wordLength, un
     return true;
 }
 
-bool promptPrintCharVariationsToChooseFrom(char* charVariations) {
+bool promptPrintCharVariationsToChooseFrom(char* charVariations){
 
     if (charVariations == nullptr) return false;
 
@@ -224,31 +231,31 @@ bool promptPrintCharVariationsToChooseFrom(char* charVariations) {
 
     std::cout << "0) Cancel" << std::endl;
 
-    for (int i = 1; i <= countOfCharVariations; i++) {
+    for (int i = 0; i < countOfCharVariations; i++) {
 
-        std::cout << i << ") " << charVariations[i] << std::endl;
+        std::cout << i + 1 << ") " << charVariations[i] << std::endl;
     }
 
     return true;
 }
 
-bool promptAskUserToPickCharVariation(unsigned short* chosenCharVariationIndex) {
+bool promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationNumber) {
 
     unsigned short countOfCharVariations = 6;
 
     std::cout << "Your choice: ";
-    std::cin >> *chosenCharVariationIndex;
+    std::cin >> *chosenCharVariationNumber;
 
     while (true) {
 
         // TODO decide if this is going to return true or false
-        if (*chosenCharVariationIndex == 0) return false;
+        if (*chosenCharVariationNumber== 0) return false;
 
         // flag if an error has occurred in the stream(e.g. user entered a character instead of a digit)
         bool anErrorHasOccurred = std::cin.fail();
 
         // if the input was invalid the user would have to give new input
-        if (*chosenCharVariationIndex > countOfCharVariations || anErrorHasOccurred) {
+        if (*chosenCharVariationNumber< 0 || *chosenCharVariationNumber> countOfCharVariations || anErrorHasOccurred) {
 
             // fixing the stream and clearing the input characters if there were any
             std::cin.clear();
@@ -256,7 +263,7 @@ bool promptAskUserToPickCharVariation(unsigned short* chosenCharVariationIndex) 
 
             // prompting user for new input
             std::cout << "Please pick a valid option between 1 and " << countOfCharVariations << ", or 0 to cancel: ";
-            std::cin >> *chosenCharVariationIndex;
+            std::cin >> *chosenCharVariationNumber;
 
             // the loop continues until the user enters valid input
             continue;
@@ -280,71 +287,225 @@ bool checkIfUserChoseTheCorrectCharVariation(const char* corruptedChars, unsigne
     return true;
 }
 
-bool play(char* text, char* corruptChars, unsigned int corruptedCharsCount, unsigned int wordCount, unsigned int &userMistakes) {
+bool checkIfNumberIsInArray(const unsigned int* array, unsigned int size, unsigned int target) {
 
+    if (array == nullptr) return false;
+    if (size == 0) return false;
+
+    for (int i = 0; i < size; i++) {
+
+        if (array[i] == target) return true;
+    }
+
+    return false;
+}
+
+unsigned int getWordCountOfText(const char* text) {
+
+    if (text == nullptr) return 0;
+    if (text[0] == '\0') return 0;
+
+    int currentIndex = 0;
+    int wordCount = 0;
+
+    while (true) {
+
+        if (isLetter(text[currentIndex])) {
+
+            wordCount++;
+
+            while (isLetter(text[currentIndex++]) && text[currentIndex] != '\0');
+            currentIndex--;
+        }
+
+        currentIndex++;
+        if (text[currentIndex] == '\0') break;
+    }
+
+    return wordCount;
+}
+
+unsigned int getCountOfLettersInText(const char* text) {
+
+    if (text == nullptr) return 0;
+    if (text[0] == '\0') return 0;
+
+    unsigned int currentIndex = 0;
+    unsigned int letterCount = 0;
+
+    while (text[currentIndex] != '\0') {
+
+        if (isLetter(text[currentIndex])) letterCount++;
+        currentIndex++;
+    }
+
+    return letterCount;
+}
+
+bool isLetter(char target) {
+
+    return (target >= 'a' && target <= 'z') || (target >= 'A' && target <= 'Z');
+}
+
+bool stateWordSelection(const char* text, const char* corruptChars, const unsigned int wordCount, unsigned int* const &wordPosition, unsigned int &wordIndex, unsigned int &wordLength) {
+
+    if (text == nullptr) return false;
+    if (corruptChars == nullptr) return false;
+    if (wordPosition == nullptr) return false;
+    if (text[0] == 0) return false;
+    if (wordCount <= 0) return false;
+
+    // state - word selection:
+    // params - text, corruptedChars, wordCount, wordPosition
+    // return vars - wordIndex, wordLength
+    promptAskUserToChooseWord(wordPosition, wordCount);
+
+    getIndexOfWordOnGivenPosition(text, corruptChars, *wordPosition, wordIndex);
+
+    getLengthOfWordStartingOnGivenIndex(text, corruptChars, wordIndex, wordLength);
+
+    promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
+
+    // end of state
+    return true;
+}
+
+bool stateCharacterSelection(const char* text, const char* corruptChars, unsigned int* const &charPosition, const unsigned int wordIndex, const unsigned int wordLength,
+    unsigned int &chosenCharIndex, char &chosenChar) {
+
+    if (text == nullptr) return false;
+    if (corruptChars == nullptr) return false;
+    if (charPosition == nullptr) return false;
+    if (text[0] == 0) return false;
+
+    // state - character selection
+    promptAskForCharacterPosition(text, corruptChars, wordLength, wordIndex, charPosition);
+
+    chosenCharIndex = wordIndex + *charPosition - 1;
+    chosenChar = text[chosenCharIndex];
+
+    // end of state
+    return true;
+}
+
+bool stateChoosingOption(char* const charVariations, const char chosenChar, unsigned short* const & chosenCharVariationNumber, char &chosenCharVariation) {
+
+    if (charVariations == nullptr) return false;
+    if (chosenChar <= 0) return false;
+
+    // state - choosing option
+
+    generateCharVariationsFromCorruptedChar(charVariations, chosenChar);
+
+    promptPrintCharVariationsToChooseFrom(charVariations);
+
+    promptAskUserToPickCharVariation(chosenCharVariationNumber);
+
+    // FIXME if user chooses 0 to cancel an error occurs since it tries to enters the array with an index of -1
+    // decreasing by one so it matches the index in the array
+    chosenCharVariation = charVariations[*chosenCharVariationNumber - 1];
+
+    // end of state
+    return true;
+}
+
+bool stateValidatingChoice(char* text, const char* corruptChars, const unsigned int chosenCharIndex,
+    const char chosenCharVariation, unsigned int &correctlyGuessedChars, unsigned int &userMistakes, bool &userHasChosenCorrectVariation) {
+
+    if (text == nullptr) return false;
+    if (corruptChars == nullptr) return false;
+    if (text[0] == 0) return false;
+    if (chosenCharVariation <= 0) return false;
+
+    checkIfUserChoseTheCorrectCharVariation(corruptChars, chosenCharIndex, chosenCharVariation, userHasChosenCorrectVariation);
+
+    // FIXME if user decides to cancel his choice don't increase userMistakes
+    if (userHasChosenCorrectVariation) {
+
+        text[chosenCharIndex] = corruptChars[chosenCharIndex];
+        correctlyGuessedChars++;
+    }
+    else {
+        // NOTE ask about whether it has to be updated to the wrong char
+        // text[chosenCharIndex] = chosenCharVariation;
+        userMistakes++;
+    }
+
+    return true;
+}
+
+bool stateEndOfStage(const unsigned int correctlyGuessedChars, const unsigned int userMistakes) {
+
+    if (correctlyGuessedChars == 0) return false;
+
+    std::cout << correctlyGuessedChars << " : " << userMistakes << std::endl;
+
+    //TODO clear console so every stage of the game has its own window:
+    //system("cls");
+
+    return true;
+}
+
+bool play(char* text, char* const corruptChars, unsigned int corruptedCharsCount, unsigned int wordCount, unsigned int &userMistakes) {
+
+    // validation
     if (text == nullptr) return false;
     if (text[0] == '\0') return false;
     if (corruptChars == nullptr) return false;
 
+    // dynamic variables that are going to be needed
     unsigned int* wordPosition = new unsigned int;
     unsigned int* charPosition = new unsigned int;
-    unsigned short* chosenCharVariationIndex = new unsigned short;
+    unsigned short* chosenCharVariationNumber= new unsigned short;
 
-    const unsigned short numberOfCharVariations = 6;
-
+    // static variables that are going to be needed
+    constexpr unsigned short numberOfCharVariations = 6;
     unsigned int correctlyGuessedChars = 0;
 
-    while (correctlyGuessedChars <= corruptedCharsCount) {
+    // gameloop
+    while (correctlyGuessedChars < corruptedCharsCount) {
 
+        // each stage starts by printing the current state of the text
         printCorruptedText(text, corruptChars);
+
         //TESTING_printStringFromSize(corruptChars, textLength);
 
         //TODO make variables const where possible
         //TODO build logic if user chooses 0
 
-        promptAskUserToChooseWord(wordPosition, wordCount);
-
+        // NOTE state - word selection
         unsigned int wordIndex;
-        getIndexOfWordOnGivenPosition(text, corruptChars, *wordPosition, wordIndex);
-
         unsigned int wordLength;
-        getLengthOfWordStartingOnGivenIndex(text, corruptChars, wordIndex, wordLength);
 
-        promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
+        stateWordSelection(text, corruptChars, wordCount, wordPosition, wordIndex, wordLength);
 
-        //TODO validate that user has picked a corrupted character
+        // NOTE state - character selection
+        unsigned int chosenCharIndex = 0;
+        char chosenChar = 0;
 
-        promptAskForCharacterPosition(text, wordLength, charPosition);
+        stateCharacterSelection(text, corruptChars, charPosition, wordIndex, wordLength, chosenCharIndex, chosenChar);
 
-        const unsigned int chosenCharIndex = wordIndex + *charPosition - 1;
-        char chosenChar = text[chosenCharIndex];
+        // NOTE state - choosing option
+        char charVariations[numberOfCharVariations] = {0, 0, 0, 0, 0, 0};
+        char chosenCharVariation = 0;
 
-        char charVariations[numberOfCharVariations];
+        stateChoosingOption(charVariations, chosenChar, chosenCharVariationNumber, chosenCharVariation);
 
-        generateCharVariationsFromCorruptedChar(charVariations, chosenChar);
-
-        promptPrintCharVariationsToChooseFrom(charVariations);
-
-        promptAskUserToPickCharVariation(chosenCharVariationIndex);
-
-        const char chosenCharVariation = charVariations[*chosenCharVariationIndex];
-
+        // NOTE state - validating choice
         bool userHasChosenCorrectVariation = false;
-        checkIfUserChoseTheCorrectCharVariation(corruptChars, chosenCharIndex, chosenCharVariation, userHasChosenCorrectVariation);
 
-        if (userHasChosenCorrectVariation) {
+        stateValidatingChoice(text, corruptChars, chosenCharIndex, chosenCharVariation, correctlyGuessedChars,
+                              userMistakes, userHasChosenCorrectVariation);
 
-            text[chosenCharIndex] = corruptChars[chosenCharIndex];
-            correctlyGuessedChars++;
-        }
-        else userMistakes++;
-
-        printCorruptedText(text, corruptChars);
+        // NOTE state - end of stage statistic and console clearing
+        stateEndOfStage(correctlyGuessedChars, userMistakes);
 
         //TESTING_printStringFromSize(corruptChars, textLength);
     }
 
     delete wordPosition;
     delete charPosition;
-    delete chosenCharVariationIndex;
+    delete chosenCharVariationNumber;
+
+    return true;
 }

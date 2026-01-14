@@ -14,39 +14,41 @@
 */
 
 #include "TextCorruption.h"
+#include "GameLogic.h"
 
 #include <iostream>
 
-#include "FileHandling.h"
+unsigned int getCountOfCorruptCharacters(const char* text, const double corruptionRate) {
 
-unsigned int getCountOfCorruptCharacters(double corruptionRate, unsigned int textLength) {
+    const unsigned int letterCount = getCountOfLettersInText(text);
 
-    if (corruptionRate < 0 || corruptionRate > 1) return 0;
+    const unsigned int countOfCorrupted = (letterCount * corruptionRate) + 0.5;
 
-    return corruptionRate * textLength + 0.5;
+    if (countOfCorrupted <= 0) {
+
+        std::cout << "Error! There aren't enough compatible characters in the text to be corrupted.";
+        return 0;
+    }
+
+    return countOfCorrupted;
 }
 
-bool isLetter(char target) {
-
-    return (target >= 'a' && target <= 'z') || (target >= 'A' && target <= 'Z');
-}
-
-char corruptCharLetter(char initial) {
+char corruptCharLetter(const char initial) {
 
     if (!isLetter(initial)) return 0;
 
-    int randomBitPosition = std::rand() % 6;
+    const int randomBitPosition = std::rand() % 6;
 
-    int toggleBitMask = 1 << randomBitPosition;
+    const int toggleBitMask = 1 << randomBitPosition;
 
-    char corrupted = initial ^ toggleBitMask;
+    const char corrupted = initial ^ toggleBitMask;
 
     return corrupted;
 }
 
-// TODO This algorithm is slow.
-// TODO Its complexity grows approximate to the number of non letter characters and the corruption rate.
-bool generateCorruptedCharacters(char* corruptChars, unsigned int countOfCorrupted, const char* text, unsigned int textLength) {
+// FIXME This algorithm is slow.
+// FIXME Its complexity grows approximate to the number of non letter characters and the corruption rate.
+bool generateCorruptedCharacters(char* corruptChars, const unsigned int countOfCorrupted, const char* text, const unsigned int textLength) {
 
     if (corruptChars == nullptr) return false;
     if (text == nullptr) return false;
@@ -57,7 +59,7 @@ bool generateCorruptedCharacters(char* corruptChars, unsigned int countOfCorrupt
     int count = 0;
     while (count < countOfCorrupted) {
 
-        unsigned int randomIndex = std::rand() % textLength;
+        const unsigned int randomIndex = std::rand() % textLength;
 
         if (!isLetter(text[randomIndex])) continue;
         if (corruptChars[randomIndex] != 0) continue;
@@ -70,73 +72,18 @@ bool generateCorruptedCharacters(char* corruptChars, unsigned int countOfCorrupt
     return true;
 }
 
-bool checkIfNumberIsInArray(const unsigned int* array, unsigned int size, unsigned int target) {
-
-    if (array == nullptr) return false;
-    if (size == 0) return false;
-
-    for (int i = 0; i < size; i++) {
-
-        if (array[i] == target) return true;
-    }
-
-    return false;
-}
-
-unsigned int getWordCountOfText(const char* text) {
-
-    if (text == nullptr) return 0;
-    if (text[0] == '\0') return 0;
-
-    int currentIndex = 0;
-    int wordCount = 0;
-
-    while (true) {
-
-        if (isLetter(text[currentIndex])) {
-
-            wordCount++;
-
-            while (isLetter(text[currentIndex++]) && text[currentIndex] != '\0');
-            currentIndex--;
-        }
-
-        currentIndex++;
-        if (text[currentIndex] == '\0') break;
-    }
-
-    return wordCount;
-}
-
-unsigned int getCountOfLettersInText(const char* text) {
-
-    if (text == nullptr) return 0;
-    if (text[0] == '\0') return 0;
-
-    unsigned int currentIndex = 0;
-    unsigned int letterCount = 0;
-
-    while (text[currentIndex] != '\0') {
-
-        if (isLetter(text[currentIndex])) letterCount++;
-        currentIndex++;
-    }
-
-    return letterCount;
-}
-
-bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, unsigned int textLength, double corruptionRate) {
+bool checkIfThereAreEnoughLettersToCorruptInText(const char* text, const double corruptionRate) {
 
     if (text == nullptr) return false;
-    if (textLength <= 0) return false;
+    if (text[0] == 0) return false;
 
-    unsigned int corruptedCharsCount = getCountOfCorruptCharacters(corruptionRate, textLength);
-    unsigned int totalLettersCount = getCountOfLettersInText(text);
+    const unsigned int corruptedCharsCount = getCountOfCorruptCharacters(text, corruptionRate);
+    const unsigned int totalLettersCount = getCountOfLettersInText(text);
 
     return totalLettersCount >= corruptedCharsCount;
 }
 
-bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
+bool corruptText(char* text, const char* corruptChars, const unsigned int textLength) {
 
     if (text == nullptr) return false;
     if (corruptChars == nullptr) return false;
@@ -150,22 +97,44 @@ bool corruptText(char* text, char* corruptChars, unsigned int textLength) {
     return true;
 }
 
-bool generateCharVariationsFromCorruptedChar(char* charVariations, char corruptedChar) {
+bool generateCharVariationsFromCorruptedChar(char* charVariations, const char corruptedChar) {
 
     if (charVariations == nullptr) return false;
 
-    unsigned short countOfCharVariations = 6;
+    constexpr unsigned short countOfCharVariations = 6;
 
     for (int i = 0; i < countOfCharVariations; i++) {
 
         // generating mask for the bit on i-th position
-        int toggleBitMask = 1 << i;
+        const int toggleBitMask = 1 << i;
 
         // flipping the bit on i-th position
-        char charVariation = corruptedChar ^ toggleBitMask;
+        const char charVariation = corruptedChar ^ toggleBitMask;
 
         charVariations[i] = charVariation;
     }
 
     return true;
+}
+
+bool characterIsCorrupted(const char* text, const char* corruptChars, unsigned int charIndex) {
+
+    if (text == nullptr) return false;
+    if (corruptChars == nullptr) return false;
+
+    if (corruptChars[charIndex] == 0) return false;
+    return true;
+}
+
+char TEST_corruptCharFromGivenIndex(const char initial, const int bitPosition) {
+
+    unsigned short countOfCharVariations = 6;
+
+    // generating mask for the bit on i-th position
+    const int toggleBitMask = 1 << bitPosition;
+
+    // flipping the bit on i-th position
+    const char corruptedChar = initial ^ toggleBitMask;
+
+    return corruptedChar;
 }
