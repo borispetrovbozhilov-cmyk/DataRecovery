@@ -627,9 +627,14 @@ void startGameMenu() {
 
     clearConsoleWindow();
 
-    std::cout << "*-----* Data Recovery *-----*" << std::endl;
+    std::cout << "\033[0;36m*---------------------*" << std::endl;
+    std::cout << "*---\033[0m \033[1;37m\033[3mData Recovery\033[0m \033[0;36m---*" << std::endl;
+    std::cout << "*---------------------*\033[0m" << std::endl;
+
+    std::cout << std::endl;
     std::cout << "1. Start New Game" << std::endl;
     std::cout << "2. Load Saved Game" << std::endl;
+    std::cout << std::endl;
     std::cout << "Choose an option: ";
 
     unsigned short menuChoice = 0;
