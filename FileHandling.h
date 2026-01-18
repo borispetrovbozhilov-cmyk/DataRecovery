@@ -22,5 +22,16 @@
 unsigned int getTextLengthFromFile(const char* filePath);
 bool configureCorrectFilePath(char* filePath);
 bool extractTextFromFile(const char* filePath, char* text);
+bool extractFileNameFromSaveFilePath(const char* filePath, char* fileName);
+
+bool saveGameIntoFile(const char* fileName, unsigned int textLength, const char* text, const char* corruptChars,
+    unsigned int userMistakes, unsigned int correctlyGuessed, unsigned int countOfCorrupted);
+bool extractGameSaveFromFile(const char* saveGameFileName, unsigned int &textLength, char* &text, char* &corruptChars,
+    unsigned int &userMistakes, unsigned int &correctlyGuessed, unsigned int &countOfCorrupted);
+
+bool getNumberFromLineInFile(std::ifstream &loadGameSaveFile, unsigned int &number);
+bool getTextFromFileByLength(std::ifstream &loadGameSaveFile, char* text, unsigned int textLength);
+
+bool hasDataRecoveryExtension(const char* filePath, bool &check);
 
 #endif //DATARECOVERY_FILEHANDLING_H

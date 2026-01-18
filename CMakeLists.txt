@@ -19,3 +19,11 @@ add_executable(test test.cpp
 )
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+
+# address sanitizer
+if(MSVC)
+    add_compile_options(/fsanitize=address)
+else()
+    add_compile_options(-fsanitize=address)
+    link_libraries(-fsanitize=address)
+endif()

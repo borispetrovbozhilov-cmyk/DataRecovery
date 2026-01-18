@@ -46,8 +46,6 @@ char corruptCharLetter(const char initial) {
     return corrupted;
 }
 
-// FIXME This algorithm is slow.
-// FIXME Its complexity grows approximate to the number of non letter characters and the corruption rate.
 bool generateCorruptedCharacters(char* corruptChars, const unsigned int countOfCorrupted, const char* text, const unsigned int textLength) {
 
     if (corruptChars == nullptr) return false;
@@ -124,17 +122,4 @@ bool characterIsCorrupted(const char* text, const char* corruptChars, unsigned i
 
     if (corruptChars[charIndex] == 0) return false;
     return true;
-}
-
-char TEST_corruptCharFromGivenIndex(const char initial, const int bitPosition) {
-
-    unsigned short countOfCharVariations = 6;
-
-    // generating mask for the bit on i-th position
-    const int toggleBitMask = 1 << bitPosition;
-
-    // flipping the bit on i-th position
-    const char corruptedChar = initial ^ toggleBitMask;
-
-    return corruptedChar;
 }

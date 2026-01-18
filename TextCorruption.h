@@ -34,7 +34,4 @@ bool generateCharVariationsFromCorruptedChar(char* charVariations, char corrupte
 
 bool characterIsCorrupted(const char* text, const char* corruptChars, unsigned int charIndex);
 
-// TESTING
-char TEST_corruptCharFromGivenIndex(char initial, int bitPosition);
-
 #endif //DATARECOVERY_TEXTCORRUPTION_H

@@ -56,3 +56,24 @@ bool fillCharArrayWithDefaultValues(char* array, unsigned int size, char default
 
     return true;
 }
+
+bool concatenateStringsIntoTheFirstOne(char* text1, const char* text2){
+
+    if (text1 == nullptr) return false;
+    if (text2 == nullptr) return false;
+
+    const unsigned int textLength1 = getCharacterCount(text1);
+    const unsigned int textLength2 = getCharacterCount(text2);
+
+    unsigned int newTextIndex = textLength1;
+
+    for (int i = 0; i < textLength2; i++) {
+
+        text1[newTextIndex] = text2[i];
+        newTextIndex++;
+    }
+
+    text1[newTextIndex] = '\0';
+
+    return true;
+}

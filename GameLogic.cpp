@@ -16,6 +16,19 @@
 #include <iostream>
 #include "GameLogic.h"
 #include "TextCorruption.h"
+#include "StringUtils.h"
+#include "FileHandling.h"
+
+void clearConsoleWindow() {
+
+    system("cls");
+}
+
+void clearStreamBuffer() {
+
+    std::cin.clear();
+    std::cin.ignore(BUFFER_SIZE, '\n');
+}
 
 bool printCorruptedText(const char* text, const char* corruptChars) {
 
@@ -39,35 +52,50 @@ bool printCorruptedText(const char* text, const char* corruptChars) {
     return true;
 }
 
-void promptAskUserToChooseWord(unsigned int* const wordPosition, unsigned int wordCount) {
+bool promptAskUserToChooseWord(unsigned int* const wordPosition, const unsigned int wordCount) {
 
-    std::cout << "Enter the number of the word you wish to inspect: ";
+    if (wordPosition == nullptr) return false;
+    if (wordCount == 0) return false;
 
-    // NOTE since there isn't a cancel option when choosing a word we can use the 0 as flag if a negative number has been entered
+    std::cout << "Enter the number of the word you wish to inspect(or 0 to go to main menu): ";
+
+    // temporary variable to check if the entered number is negative
+    long long tempCheckForSign = -1;
+
     while (true) {
 
-        std::cin >> *wordPosition;
+        std::cin >> tempCheckForSign;
 
         // checks whether an error has occurred
         bool anErrorHasOccurred = std::cin.fail();
 
-        if (*wordPosition <= 0 || *wordPosition > wordCount || anErrorHasOccurred) {
+        if (!anErrorHasOccurred && tempCheckForSign == 0) {
 
-            std::cin.clear();
-            std::cin.ignore(AMOUNT_OF_CHARACTERS_TO_SKIP, '\n');
+            *wordPosition = 0;
+            return true;
+        }
 
-            std::cout << "Please enter a valid word position, between 1 and " << wordCount << ": ";
+        if (tempCheckForSign <= 0 || tempCheckForSign > wordCount || anErrorHasOccurred) {
+
+            clearStreamBuffer();
+
+            std::cout << "Please enter a valid word position, between 1 and " << wordCount << "(or 0 to go back to main menu): ";
             continue;
         }
 
         break;
     }
+
+    *wordPosition = tempCheckForSign;
+
+    return true;
 }
 
 bool getIndexOfWordOnGivenPosition(const char* text, const char* corruptChars, unsigned int wordPosition, unsigned int &wordIndex) {
 
     if (text == nullptr) return false;
     if (text[0] == '\0') return false;
+    if (wordPosition == 0) return false;
 
     int currentIndex = 0;
     int wordCount = 0;
@@ -200,22 +228,21 @@ bool promptAskForCharacterPosition(const char* text, const char* corruptChars, c
 
         if (!anErrorHasOccurred && tempCheckForSign >= 0) {
 
-            //TODO decide if this is going to return true or false
             if (tempCheckForSign == 0) {
 
                 *charPosition = 0;
-                return false;
+                return true;
             }
 
             unsigned int indexOfChosenChar = wordIndex + tempCheckForSign - 1;
+
             hasChosenUncorruptedCharacter = (corruptChars[indexOfChosenChar] == 0 ||
                 corruptChars[indexOfChosenChar] == text[indexOfChosenChar]);
         }
 
         if (tempCheckForSign <= 0 || tempCheckForSign > wordLength || anErrorHasOccurred || hasChosenUncorruptedCharacter) {
 
-            std::cin.clear();
-            std::cin.ignore(AMOUNT_OF_CHARACTERS_TO_SKIP, '\n');
+            clearStreamBuffer();
 
             std::cout << "Please enter a valid position of a corrupted character between 1 and " << wordLength << ", or 0 to cancel: ";
             continue;
@@ -223,16 +250,13 @@ bool promptAskForCharacterPosition(const char* text, const char* corruptChars, c
 
         *charPosition = tempCheckForSign;
 
-        promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
-        printArrowToChosenCharacterPosition(*charPosition, wordLength);
-
         break;
     }
 
     return true;
 }
 
-bool promptPrintCharVariationsToChooseFrom(char* charVariations){
+bool promptPrintCharVariationsToChooseFrom(const char* charVariations){
 
     if (charVariations == nullptr) return false;
 
@@ -250,7 +274,7 @@ bool promptPrintCharVariationsToChooseFrom(char* charVariations){
     return true;
 }
 
-bool promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationNumber) {
+void promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationNumber) {
 
     unsigned short countOfCharVariations = 6;
     int tempCheckForSign = -1;
@@ -266,11 +290,10 @@ bool promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationN
 
         if (!anErrorHasOccurred) {
 
-            // TODO decide if this is going to return true or false
             if (tempCheckForSign == 0) {
 
                 *chosenCharVariationNumber = 0;
-                return false;
+                return;
             }
 
         }
@@ -279,8 +302,7 @@ bool promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationN
         if (tempCheckForSign <= 0 || tempCheckForSign > countOfCharVariations || anErrorHasOccurred) {
 
             // fixing the stream and clearing the input characters if there were any
-            std::cin.clear();
-            std::cin.ignore(AMOUNT_OF_CHARACTERS_TO_SKIP, '\n');
+            clearStreamBuffer();
 
             // prompting user for new input
             std::cout << "Please pick a valid option between 1 and " << countOfCharVariations << ", or 0 to cancel: ";
@@ -294,8 +316,6 @@ bool promptAskUserToPickCharVariation(unsigned short* const chosenCharVariationN
 
         break;
     }
-
-    return true;
 }
 
 bool printArrowToChosenCharacterPosition(unsigned int chosenCharPosition, unsigned int wordLength) {
@@ -385,7 +405,7 @@ bool isLetter(char target) {
     return (target >= 'a' && target <= 'z') || (target >= 'A' && target <= 'Z');
 }
 
-bool stateWordSelection(const char* text, const char* corruptChars, const unsigned int wordCount, unsigned int* const &wordPosition, unsigned int &wordIndex, unsigned int &wordLength) {
+bool stateWordSelection(const char* text, const char* corruptChars, const unsigned int wordCount, unsigned int* const wordPosition, unsigned int &wordIndex, unsigned int &wordLength) {
 
     if (text == nullptr) return false;
     if (corruptChars == nullptr) return false;
@@ -393,20 +413,23 @@ bool stateWordSelection(const char* text, const char* corruptChars, const unsign
     if (text[0] == 0) return false;
     if (wordCount <= 0) return false;
 
-    // state - word selection:
-    // params - text, corruptedChars, wordCount, wordPosition
-    // return vars - wordIndex, wordLength
+    // each stage starts by printing the current state of the text
+    printCorruptedText(text, corruptChars);
+
+    std::cout << std::endl;
+
     promptAskUserToChooseWord(wordPosition, wordCount);
+
+    if (*wordPosition == 0) return true;
 
     getIndexOfWordOnGivenPosition(text, corruptChars, *wordPosition, wordIndex);
 
     getLengthOfWordStartingOnGivenIndex(text, corruptChars, wordIndex, wordLength);
 
-    // end of state
     return true;
 }
 
-bool stateCharacterSelection(const char* text, const char* corruptChars, unsigned int* const &charPosition, const unsigned int wordIndex, const unsigned int wordLength,
+bool stateCharacterSelection(const char* text, const char* corruptChars, unsigned int* const charPosition, const unsigned int wordIndex, const unsigned int wordLength,
     unsigned int &chosenCharIndex, char &chosenChar) {
 
     if (text == nullptr) return false;
@@ -414,27 +437,35 @@ bool stateCharacterSelection(const char* text, const char* corruptChars, unsigne
     if (charPosition == nullptr) return false;
     if (text[0] == 0) return false;
 
+    //clearConsoleWindow();
+
     promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
 
-    // state - character selection
+    std::cout << std::endl;
+
     promptAskForCharacterPosition(text, corruptChars, wordLength, wordIndex, charPosition);
 
-    //TODO decide return value in this case
     if (*charPosition == 0) return true;
 
     chosenCharIndex = wordIndex + *charPosition - 1;
     chosenChar = text[chosenCharIndex];
 
-    // end of state
     return true;
 }
 
-bool stateChoosingOption(char* const charVariations, const char chosenChar, unsigned short* const & chosenCharVariationNumber, char &chosenCharVariation) {
+bool stateChoosingOption(const char* const text, const char* const corruptChars, const unsigned int wordIndex,
+    const unsigned int wordLength, const unsigned int* const charPosition, char* const charVariations,
+    const char chosenChar, unsigned short* const chosenCharVariationNumber, char &chosenCharVariation) {
 
     if (charVariations == nullptr) return false;
     if (chosenChar <= 0) return false;
 
-    // state - choosing option
+    //clearConsoleWindow();
+
+    promptPrintSelectedWord(text, corruptChars, wordIndex, wordLength);
+    printArrowToChosenCharacterPosition(*charPosition, wordLength);
+
+    std::cout << std::endl;
 
     generateCharVariationsFromCorruptedChar(charVariations, chosenChar);
 
@@ -451,7 +482,6 @@ bool stateChoosingOption(char* const charVariations, const char chosenChar, unsi
     // decreasing by one so it matches the index in the array
     chosenCharVariation = charVariations[*chosenCharVariationNumber - 1];
 
-    // end of state
     return true;
 }
 
@@ -471,26 +501,27 @@ bool stateValidatingChoice(char* text, const char* corruptChars, const unsigned 
         correctlyGuessedChars++;
     }
     else {
-        // NOTE ask about whether it has to be updated to the wrong char
-        // text[chosenCharIndex] = chosenCharVariation;
         userMistakes++;
     }
 
     return true;
 }
 
-bool stateEndOfStage(const unsigned int correctlyGuessedChars, const unsigned int userMistakes) {
+bool printStatisticsOnTop(const unsigned int correctlyGuessedChars, const unsigned int userMistakes) {
+
+    // clearing the console
+    clearConsoleWindow();
 
     std::cout << "Mistakes so far: " << userMistakes << std::endl;
     std::cout << "Correctly guessed so far: " << correctlyGuessedChars << std::endl;
 
-    //TODO clear console so every stage of the game has its own window:
-    //system("cls");
+    std::cout << std::endl;
 
     return true;
 }
 
-bool play(char* text, char* const corruptChars, unsigned int corruptedCharsCount, unsigned int wordCount, unsigned int &userMistakes) {
+bool play(bool &backToMainMenu, char* text, const char* const corruptChars, const unsigned int corruptedCharsCount, const unsigned int wordCount,
+    unsigned int &userMistakes, unsigned int &correctlyGuessedChars) {
 
     // validation
     if (text == nullptr) return false;
@@ -500,23 +531,33 @@ bool play(char* text, char* const corruptChars, unsigned int corruptedCharsCount
     // dynamic variables that are going to be needed
     unsigned int* wordPosition = new unsigned int;
     unsigned int* charPosition = new unsigned int;
-    unsigned short* chosenCharVariationNumber= new unsigned short;
+    unsigned short* chosenCharVariationNumber = new unsigned short;
 
-    // static variables that are going to be needed
+    // constant variables that are going to be needed
     constexpr unsigned short numberOfCharVariations = 6;
-    unsigned int correctlyGuessedChars = 0;
 
     // gameloop
     while (correctlyGuessedChars < corruptedCharsCount) {
 
-        // each stage starts by printing the current state of the text
-        printCorruptedText(text, corruptChars);
+        clearConsoleWindow();
 
         // NOTE state - word selection
-        unsigned int wordIndex;
-        unsigned int wordLength;
+        unsigned int wordIndex = 0;
+        unsigned int wordLength = 0;
 
+        printStatisticsOnTop(correctlyGuessedChars, userMistakes);
         stateWordSelection(text, corruptChars, wordCount, wordPosition, wordIndex, wordLength);
+
+        // user has decided to go back to the main menu
+        if (*wordPosition == 0) {
+            backToMainMenu = true;
+
+            delete wordPosition;
+            delete charPosition;
+            delete chosenCharVariationNumber;
+
+            return true;
+        }
 
         while (true) {
 
@@ -524,17 +565,28 @@ bool play(char* text, char* const corruptChars, unsigned int corruptedCharsCount
             unsigned int chosenCharIndex = 0;
             char chosenChar = 0;
 
+            printStatisticsOnTop(correctlyGuessedChars, userMistakes);
             stateCharacterSelection(text, corruptChars, charPosition, wordIndex, wordLength, chosenCharIndex, chosenChar);
 
-            if (*charPosition == 0) break;
+            if (*charPosition == 0) {
+
+                clearConsoleWindow();
+                break;
+            }
 
             // NOTE state - choosing option
             char charVariations[numberOfCharVariations] = {0, 0, 0, 0, 0, 0};
             char chosenCharVariation = 0;
 
-            stateChoosingOption(charVariations, chosenChar, chosenCharVariationNumber, chosenCharVariation);
+            printStatisticsOnTop(correctlyGuessedChars, userMistakes);
+            stateChoosingOption(text, corruptChars, wordIndex, wordLength, charPosition,
+                charVariations, chosenChar, chosenCharVariationNumber, chosenCharVariation);
 
-            if (*chosenCharVariationNumber == 0) continue;
+            if (*chosenCharVariationNumber == 0) {
+
+                clearConsoleWindow();
+                continue;
+            }
 
             // NOTE state - validating choice
             bool userHasChosenCorrectVariation = false;
@@ -542,18 +594,323 @@ bool play(char* text, char* const corruptChars, unsigned int corruptedCharsCount
             stateValidatingChoice(text, corruptChars, chosenCharIndex, chosenCharVariation, correctlyGuessedChars,
                                   userMistakes, userHasChosenCorrectVariation);
 
-            // NOTE state - end of stage statistic and console clearing
-            stateEndOfStage(correctlyGuessedChars, userMistakes);
-
             // after choosing correctly the last corrupted character left, we exit the inner loop so we can end the game
             if (correctlyGuessedChars == corruptedCharsCount) break;
-
         }
     }
+
+    printEndGameMessage(userMistakes);
 
     delete wordPosition;
     delete charPosition;
     delete chosenCharVariationNumber;
 
     return true;
+}
+
+void printEndGameMessage(const unsigned int userMistakes) {
+
+    clearConsoleWindow();
+
+    // user has completed the game
+    std::cout << "Congratulations!" << std::endl;
+    std::cout << "You have completed the game with " << userMistakes << " mistakes." << std::endl;
+    std::cout << "Hope you enjoyed." << std::endl;
+    std::cout << std::endl;
+    std::cout << "Press enter to exit...";
+
+    // waiting for user to press enter to close the program
+    std::cin.ignore(BUFFER_SIZE, '\n');
+    std::cin.get();
+}
+
+void startGameMenu() {
+
+    clearConsoleWindow();
+
+    std::cout << "*-----* Data Recovery *-----*" << std::endl;
+    std::cout << "1. Start New Game" << std::endl;
+    std::cout << "2. Load Saved Game" << std::endl;
+    std::cout << "Choose an option: ";
+
+    unsigned short menuChoice = 0;
+
+    while (true) {
+
+        std::cin >> menuChoice;
+        clearStreamBuffer();
+
+        if (menuChoice == 1) {
+            startNewGameMenu();
+            break;
+        }
+
+        if (menuChoice == 2) {
+            loadSavedGameMenu();
+            break;
+        }
+
+        std::cout << "Please choose a valid option: ";
+    }
+}
+
+void startNewGameMenu() {
+
+    clearConsoleWindow();
+
+    constexpr unsigned short maxLengthOfFileName = BUFFER_SIZE;
+    char filePath[maxLengthOfFileName];
+
+    std::cout << "Please enter the file path or the name of the file: ";
+
+    while (true) {
+
+        std::cin.getline(filePath, BUFFER_SIZE);
+        std::cout << std::endl;
+
+        if (!std::cin.fail()) break;
+        clearStreamBuffer();
+
+        std::cout << "The path was too long or invalid. Please enter a new path: ";
+    }
+
+    std::cout << "Enter the corruption rate: ";
+
+    double corruptionRate = 0;
+
+    while (true) {
+
+        std::cin >> corruptionRate;
+        std::cout << std::endl;
+
+        if (corruptionRate > 0 && corruptionRate < 1) break;
+        clearStreamBuffer();
+
+        std::cout << "Please enter a valid corruption rate between 0 and 1: ";
+    }
+
+    // configures the file path correctly so it can be read on all OS
+    configureCorrectFilePath(filePath);
+
+    startNewGame(filePath, corruptionRate);
+}
+
+void startNewGame(const char* filePath, const double corruptionRate) {
+
+    clearConsoleWindow();
+
+    // textLength is going to be a dynamic variable, since we will learn the path runtime
+    const unsigned int textLength = getTextLengthFromFile(filePath);
+
+    // we have to add one more element for the '\0'
+    char* text = new char[textLength + 1];
+    char* corruptChars = new char[textLength];
+
+    // extracts the text and saves it into an array
+    extractTextFromFile(filePath, text);
+
+    // corruptChar must be filled with 0 by default because of logic
+    fillCharArrayWithDefaultValues(corruptChars, textLength, 0);
+
+    // getting count of corrupted character in the text
+    unsigned int countOfCorrupted = getCountOfCorruptCharacters(text, corruptionRate);
+
+    // generating the position of the corrupted characters
+    generateCorruptedCharacters(corruptChars, countOfCorrupted, text, textLength);
+
+    // corrupting the original text
+    corruptText(text, corruptChars, textLength);
+
+    // counter for user mistakes
+    unsigned int userMistakes = 0;
+    unsigned int correctlyGuessed = 0;
+
+    // gets the count of the words
+    const unsigned int wordCount = getWordCountOfText(text);
+
+    // creating a flag if user decides to go back to main menu
+    bool backToMainMenu = false;
+
+    // plays the actual game
+    play(backToMainMenu, text, corruptChars, countOfCorrupted, wordCount, userMistakes, correctlyGuessed);
+
+    // going back to the main menu
+    if (backToMainMenu) {
+
+        clearConsoleWindow();
+
+        saveCurrentGameIntoNewSaveFile(textLength, text, corruptChars, countOfCorrupted, userMistakes, correctlyGuessed);
+
+        // freeing memory in order of allocating it
+        delete[] text;
+        delete[] corruptChars;
+
+        startGameMenu();
+    }
+
+    // freeing memory in order of allocating it
+    delete[] text;
+    delete[] corruptChars;
+}
+
+void loadSavedGameMenu() {
+
+    clearConsoleWindow();
+
+    constexpr unsigned short maxLengthOfFileName = BUFFER_SIZE;
+    char filePath[maxLengthOfFileName];
+
+    std::cout << "Please enter the file path or the name of the file(with extension .datarecovery): ";
+
+    while (true) {
+
+        std::cin.getline(filePath, BUFFER_SIZE);
+
+        if (!std::cin.fail()) {
+
+            bool hasValidDataRecoveryExtension = false;
+            hasDataRecoveryExtension(filePath, hasValidDataRecoveryExtension);
+
+            //check for extension
+            if (hasValidDataRecoveryExtension) break;
+        }
+
+        std::cout << "The path was too long or invalid. Please enter a new path: ";
+    }
+
+    configureCorrectFilePath(filePath);
+
+    loadSavedGame(filePath);
+}
+
+bool loadSavedGame(const char* filePath) {
+
+    if (filePath == nullptr) return false;
+
+    unsigned int textLength = 0;
+    unsigned int countOfCorrupted = 0;
+
+    char* text;
+    char* corruptChars;
+
+    unsigned int userMistakes = 0;
+    unsigned int correctlyGuessed = 0;
+
+    extractGameSaveFromFile(filePath, textLength, text, corruptChars, userMistakes, correctlyGuessed, countOfCorrupted);
+
+    const unsigned int wordCount = getWordCountOfText(text);
+
+    bool backToMainMenu = false;
+
+    play(backToMainMenu, text, corruptChars, countOfCorrupted, wordCount, userMistakes, correctlyGuessed);
+
+    // going back to the main menu
+    if (backToMainMenu) {
+
+        clearConsoleWindow();
+
+        updateSaveFileToCurrentGame(filePath, textLength, text, corruptChars, countOfCorrupted, userMistakes, correctlyGuessed);
+
+        // freeing memory in order of allocating it
+        delete[] text;
+        delete[] corruptChars;
+
+        startGameMenu();
+    }
+
+    // freeing memory in order of allocating it
+    delete[] text;
+    delete[] corruptChars;
+
+    return true;
+}
+
+void updateSaveFileToCurrentGame(const char* filePath, const unsigned int textLength, const char* const text, const char* const corruptChars,
+    const unsigned int countOfCorrupted, const unsigned int userMistakes, const unsigned int correctlyGuessed) {
+
+    clearConsoleWindow();
+
+    std::cout << "Do you want to update your saved game? Type y/n: ";
+
+    char answer = 0;
+
+    while (true) {
+
+        std::cin >> answer;
+        clearStreamBuffer();
+        std::cout << std::endl;
+
+        if (answer != 'y' && answer != 'n' && answer != 'Y' && answer != 'N') {
+
+            std::cout << "Please enter y(for yes) or n(for no): ";
+            continue;
+        }
+
+        break;
+    }
+
+    if (answer == 'y' || answer == 'Y') {
+
+        const unsigned int filePathLength = getCharacterCount(filePath);
+        char saveFileName[filePathLength];
+
+        extractFileNameFromSaveFilePath(filePath, saveFileName);
+
+        saveGameIntoFile(saveFileName, textLength, text, corruptChars, userMistakes, correctlyGuessed, countOfCorrupted);
+
+        std::cout << "Your game was saved successfully!" << std::endl;
+        std::cout << "Save name: " << saveFileName << ".datarecovery" << std::endl;
+    }
+
+}
+
+void saveCurrentGameIntoNewSaveFile(const unsigned int textLength, const char* const text, const char* const corruptChars,
+    const unsigned int countOfCorrupted, const unsigned int userMistakes, const unsigned int correctlyGuessed) {
+
+    clearConsoleWindow();
+
+    std::cout << "Do you want to save your game? Type y/n: ";
+
+    char answer = 0;
+
+    while (true) {
+
+        std::cin >> answer;
+        clearStreamBuffer();
+        std::cout << std::endl;
+
+        if (answer != 'y' && answer != 'n' && answer != 'Y' && answer != 'N') {
+
+            std::cout << "Please enter y(for yes) or n(for no): ";
+            continue;
+        }
+
+        break;
+    }
+
+    if (answer == 'y' || answer == 'Y') {
+
+        std::cout << "Please enter a name for your save file: ";
+
+        char saveFileName[BUFFER_SIZE];
+
+        while (true) {
+
+            std::cin.getline(saveFileName, BUFFER_SIZE);
+
+            if (std::cin.fail()) {
+
+                std::cout << "An error occurred. File name might be too long. Please enter a shorter one instead: ";
+                continue;
+            }
+
+            break;
+        }
+
+        saveGameIntoFile(saveFileName, textLength, text, corruptChars, userMistakes, correctlyGuessed, countOfCorrupted);
+
+        std::cout << "Your game was saved successfully!" << std::endl;
+        std::cout << "Save name: " << saveFileName << ".datarecovery" << std::endl;
+    }
+
 }

@@ -20,5 +20,6 @@
 unsigned int getCharacterCount(const char* src);
 bool replaceEveryOccurrenceOfCharInString(char* src, char target, char replacement);
 bool fillCharArrayWithDefaultValues(char* array, unsigned int size, char defaultValue);
+bool concatenateStringsIntoTheFirstOne(char* text1, const char* text2);
 
 #endif //DATARECOVERY_STRINGUTILS_H
