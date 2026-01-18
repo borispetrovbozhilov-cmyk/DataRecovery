@@ -620,7 +620,6 @@ void printEndGameMessage(const unsigned int userMistakes) {
     std::cout << "Press enter to exit...";
 
     // waiting for user to press enter to close the program
-    std::cin.ignore(BUFFER_SIZE, '\n');
     std::cin.get();
 }
 
@@ -856,10 +855,18 @@ void updateSaveFileToCurrentGame(const char* filePath, const unsigned int textLe
 
         extractFileNameFromSaveFilePath(filePath, saveFileName);
 
+        std::cout << saveFileName << std::endl;
+
         saveGameIntoFile(saveFileName, textLength, text, corruptChars, userMistakes, correctlyGuessed, countOfCorrupted);
 
+        std::cout << std::endl;
         std::cout << "Your game was saved successfully!" << std::endl;
         std::cout << "Save name: " << saveFileName << ".datarecovery" << std::endl;
+
+        std::cout << "Press enter to continue..." << std::endl;
+
+        // waiting for user to press enter to close the program
+        std::cin.get();
     }
 
 }
@@ -906,11 +913,17 @@ void saveCurrentGameIntoNewSaveFile(const unsigned int textLength, const char* c
 
             break;
         }
-
         saveGameIntoFile(saveFileName, textLength, text, corruptChars, userMistakes, correctlyGuessed, countOfCorrupted);
 
+        std::cout << std::endl;
         std::cout << "Your game was saved successfully!" << std::endl;
         std::cout << "Save name: " << saveFileName << ".datarecovery" << std::endl;
+
+        std::cout << "Press enter to continue...";
+
+        // waiting for user to press enter to close the program
+        std::cin.get();
+
     }
 
 }

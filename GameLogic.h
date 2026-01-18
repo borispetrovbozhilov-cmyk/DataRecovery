@@ -17,7 +17,7 @@
 #ifndef DATARECOVERY_GAMELOGIC_H
 #define DATARECOVERY_GAMELOGIC_H
 
-const unsigned int BUFFER_SIZE = 10000;
+constexpr unsigned int BUFFER_SIZE = 10000;
 
 // NOTE functions only for printing information to the console
 bool printCorruptedText(const char* text, const char* corruptChars);

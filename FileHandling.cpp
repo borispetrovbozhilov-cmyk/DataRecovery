@@ -32,10 +32,14 @@ unsigned int getTextLengthFromFile(const char* filePath) {
 
     // file has successfully been opened
 
-    // counting the number of characters in the source file, including '\n'
-    srcFile.seekg(0, std::ios::end);
-    const unsigned int length = srcFile.tellg();
-    srcFile.seekg(0, std::ios::beg);
+    unsigned int length = 0;
+
+    char currentChar = 0;
+    while (srcFile.get(currentChar)) {
+
+        if (currentChar == '\r') continue;
+        length++;
+    }
 
     //closing the stream
     srcFile.close();
@@ -95,7 +99,7 @@ bool extractFileNameFromSaveFilePath(const char* filePath, char* fileName) {
     }
 
     // moving it forward once it matches the start of the word if it found a \ or /
-    if (extensionStartIndex != 0) nameStartIndex++;
+    if (nameStartIndex != 0) nameStartIndex++;
 
     // extracting the name
     for (unsigned int i = nameStartIndex; i < extensionStartIndex; i++) {
@@ -182,6 +186,8 @@ bool extractGameSaveFromFile(const char* saveGameFileName, unsigned int &textLen
     // setting the end of the text, because the function doesn't do it
     text[textLength] = '\0';
 
+    std::cout << text << std::endl;
+
     // moving the cursor to the next line
     loadGameSaveFile.get(tempForMovingCursor);
 
@@ -232,6 +238,7 @@ bool getTextFromFileByLength(std::ifstream &loadGameSaveFile, char* text, const 
 
         // extracting character
         loadGameSaveFile.get(currentCharacter);
+
         // assigning it on its position
         text[i] = currentCharacter;
     }
@@ -243,7 +250,6 @@ bool hasDataRecoveryExtension(const char* filePath, bool &check) {
 
     if (filePath == nullptr) return false;
 
-    //FIXME might make them global or replace with functions
     constexpr char validExtension[] = ".datarecovery";
     const unsigned int extensionLength = getCharacterCount(validExtension);
 
