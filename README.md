@@ -1,2 +1,1 @@
-This is the initial README.md documentation for the project.
-This is a console-based game developed as a course project for "Introduction to Programming" at Sofia University (FMI). The goal of the game is to restore a corrupted text file to its original state using bit manipulation logic.
+This is a console-based game developed as a course project for "Introduction to Programming" at Sofia University (FMI). The goal of the game is to restore a corrupted text file to its original state using bit manipulation logic. Feel free to pull and improve.
